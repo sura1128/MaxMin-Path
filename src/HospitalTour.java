@@ -32,8 +32,7 @@ class HospitalTour {
 
 		if (V <= 2) {
 			ans = -1;
-		} 		
-		else {
+		} else {
 			findImportantRooms();
 
 			if (importantRooms.isEmpty()) {
@@ -68,41 +67,46 @@ class HospitalTour {
 		}
 	}
 
-
 	void findImportantRooms() {
-		int countV = 0;
 
-		for (int i = 0; i < V; i++) {
+		createAdjList(); // O(V^2) Complexity
+
+		for (int i = 0; i < V; i++) { // O(V) Complexity
 			List<Integer> neighbours = new ArrayList<Integer>();
+
 			if (i == 0) {
 				isSource = true;
 			} else {
 				isSource = false;
 			}
-			for (int j = 0; j < V; j++) {
-				if (AdjMatrix[i][j] == 1) {
-					neighbours.add(j);
-					AdjMatrix[i][j] = 0;
-					AdjMatrix[j][i] = 0;
-				}
+
+			neighbours.addAll(adjList.get(i));
+			adjList.get(i).clear();
+
+			for (int j = 0; j < neighbours.size(); j++) { // O(E) Complexity
+				int m = neighbours.get(j);
+				adjList.get(m).remove(adjList.get(m).indexOf(i));
+				Collections.sort(adjList.get(neighbours.get(j)));
 			}
 
-			countV = BFS();
-			if (countV != V - 1) {
+			int count = BFS(adjList); // O(V+E) Complexity
+			if (count != V - 1) {
 				importantRooms.add(i);
 			}
 
-			for (int j = 0; j < neighbours.size(); j++) {
-				AdjMatrix[i][neighbours.get(j)] = 1;
-				AdjMatrix[neighbours.get(j)][i] = 1;
+			for (int j = 0; j < neighbours.size(); j++) { // O(E) Complexity
+				int m = neighbours.get(j);
+				adjList.get(m).add(i);
+				adjList.get(i).add(m);
+				Collections.sort(adjList.get(j));
 			}
-		}
 
+			neighbours.clear();
+		}
 	}
 
-	int BFS() {
-
-		createAdjList();
+	int BFS(List<List<Integer>> tempList) { // Breadth-first Search, Return:
+											// count of vertices
 
 		int visited[] = new int[V];
 		int countV = 1;
@@ -122,8 +126,8 @@ class HospitalTour {
 
 		while (!queue.isEmpty()) {
 			int u = queue.dequeue();
-			for (int i = 0; i < adjList.get(u).size(); i++) {
-				int temp = adjList.get(u).get(i);
+			for (int i = 0; i < tempList.get(u).size() && !tempList.get(u).isEmpty(); i++) {
+				int temp = tempList.get(u).get(i);
 				if (visited[temp] == 0) {
 					visited[temp] = 1;
 					countV++;
